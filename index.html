@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Programação Disney Channel</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    select { margin: 10px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h1>Programação Disney Channel</h1>
+
+  <label for="yearSelect">Ano:</label>
+  <select id="yearSelect"></select>
+
+  <label for="dateSelect">Data:</label>
+  <select id="dateSelect"></select>
+
+  <div id="tableContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
