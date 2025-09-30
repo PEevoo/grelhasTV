@@ -1,5 +1,5 @@
 // Caminho para o CSV no repositório
-const csvFile = "data/grelha.csv";
+const csvFile = "./data/grelha.csv";
 
 let data = []; // array com os registos
 
