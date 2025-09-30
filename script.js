@@ -1,5 +1,5 @@
 // Caminho para o CSV no repositório
-const csvFile = "./data/grelha.csv";
+const csvFile = "https://peevoo.github.io/grelhasTV/data/grelha.csv";
 
 let data = []; // array com os registos
 
@@ -14,14 +14,31 @@ Papa.parse(csvFile, {
 });
 
 function init() {
+  // Normaliza as chaves para remover espaços em branco
+  data = data.map(row => {
+    const fixed = {};
+    Object.keys(row).forEach(k => {
+      fixed[k.trim()] = row[k];
+    });
+    return fixed;
+  });
+
   // Extrair anos únicos da coluna "Data"
-  const years = [...new Set(data.map(row => row["Data"].split("/")[2]))];
+  const years = [...new Set(
+    data
+      .map(row => {
+        if (!row["Data"]) return null;
+        const parts = row["Data"].split("/");
+        return parts.length === 3 ? parts[2] : null;
+      })
+      .filter(y => y !== null)
+  )];
+
   years.sort();
 
   const yearSelect = document.getElementById("yearSelect");
   const dateSelect = document.getElementById("dateSelect");
 
-  // Preencher dropdown de anos
   years.forEach(year => {
     const opt = document.createElement("option");
     opt.value = year;
@@ -29,19 +46,19 @@ function init() {
     yearSelect.appendChild(opt);
   });
 
-  // Atualizar datas quando mudar o ano
   yearSelect.addEventListener("change", () => {
     updateDates(yearSelect.value);
   });
 
-  // Atualizar tabela quando mudar a data
   dateSelect.addEventListener("change", () => {
     showTable(dateSelect.value);
   });
 
-  // Inicializar com o primeiro ano
-  updateDates(years[0]);
+  if (years.length > 0) {
+    updateDates(years[0]);
+  }
 }
+
 
 function updateDates(year) {
   const dateSelect = document.getElementById("dateSelect");
@@ -49,16 +66,23 @@ function updateDates(year) {
 
   // Filtrar datas do ano escolhido
   const dates = [...new Set(
-    data.filter(row => row["Data"].endsWith(year))
-        .map(row => row["Data"])
+    data
+      .filter(row => {
+        if (!row["Data"]) return false;
+        const parts = row["Data"].split("/");
+        return parts.length === 3 && parts[2] === year;
+      })
+      .map(row => row["Data"])
   )];
-  
+
+  // Ordenar por data real
   dates.sort((a, b) => {
     const [d1, m1, y1] = a.split("/").map(Number);
     const [d2, m2, y2] = b.split("/").map(Number);
-    return new Date(y1, m1-1, d1) - new Date(y2, m2-1, d2);
+    return new Date(y1, m1 - 1, d1) - new Date(y2, m2 - 1, d2);
   });
 
+  // Preencher o dropdown
   dates.forEach(date => {
     const opt = document.createElement("option");
     opt.value = date;
@@ -66,8 +90,12 @@ function updateDates(year) {
     dateSelect.appendChild(opt);
   });
 
-  // Mostrar logo a primeira data
-  showTable(dates[0]);
+  // Mostrar logo a primeira tabela
+  if (dates.length > 0) {
+    showTable(dates[0]);
+  } else {
+    document.getElementById("tableContainer").innerHTML = `<p>Sem grelhas disponíveis para ${year}</p>`;
+  }
 }
 
 function showTable(date) {
