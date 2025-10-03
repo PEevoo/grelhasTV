@@ -2,27 +2,180 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Programação Disney Channel</title>
+  <title>Disney Channel Grelha</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    select { margin: 10px; padding: 5px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f0f0f0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #fafafa;
+      padding: 20px;
+      text-align: center;
+    }
+
+    select {
+      padding: 4px 8px;
+      margin: 5px;
+    }
+
+    .schedule {
+      border-collapse: collapse;
+      width: 300px;
+      margin: 20px auto;
+      font-size: 14px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .schedule td {
+      border: 1px solid #ddd;
+      padding: 6px;
+    }
+
+    .hora {
+      width: 60px;
+      font-weight: bold;
+      color: #333;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .programa {
+      text-align: left;
+    }
+
+    .bloco {
+      background: #f0f0f0;
+      font-weight: bold;
+      text-align: left;
+      padding-left: 8px;
+      border-top: 2px solid #aaa;
+    }
+
+    .indent {
+      padding-left: 20px !important;
+      color: #333;
+      border-left: 3px solid #ddd !important;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #555;
+    }
   </style>
 </head>
 <body>
-  <h1>Programação Disney Channel</h1>
+  <h2>Grelha de Programação</h2>
 
-  <label for="yearSelect">Ano:</label>
-  <select id="yearSelect"></select>
+  <div>
+    <label for="yearSelect">Ano:</label>
+    <select id="yearSelect"></select>
 
-  <label for="dateSelect">Data:</label>
-  <select id="dateSelect"></select>
+    <label for="dateSelect">Data:</label>
+    <select id="dateSelect"></select>
+  </div>
 
   <div id="tableContainer"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="script.js"></script>
+  <script>
+    let allData = [];
+
+    // Mostrar tabela de uma data específica
+    function showTableForDate(selectedDate) {
+      const rows = allData.filter(r => r["Data"] === selectedDate);
+
+      if (rows.length === 0) {
+        document.getElementById("tableContainer").innerHTML = "<p>Nenhuma grelha encontrada.</p>";
+        return;
+      }
+
+      let html = `<table class="schedule">`;
+      let currentBloco = "";
+
+      rows.forEach(row => {
+        const bloco = row["Bloco"] ? row["Bloco"].trim() : "";
+
+        // Se mudou de bloco → imprime linha do bloco
+        if (bloco && bloco !== currentBloco) {
+          html += `<tr><td colspan="2" class="bloco">${bloco}</td></tr>`;
+          currentBloco = bloco;
+        }
+
+        // Linha do programa
+        html += "<tr>";
+        html += `<td class="hora">${row["Hora"] || ""}</td>`;
+        html += `<td class="programa ${bloco ? 'indent' : ''}">${row["Programa"] || ""}</td>`;
+        html += "</tr>";
+      });
+
+      html += "</table>";
+
+      const fonte = rows[0]?.Fonte || "Desconhecida";
+      const obs = rows[0]?.Obs || "";
+
+      html += `<div class="footer">
+        <em>Fonte: ${fonte}</em><br>
+        <small>Observações: ${obs}</small>
+      </div>`;
+
+      document.getElementById("tableContainer").innerHTML = html;
+    }
+
+    // Atualizar dropdown de datas quando se escolhe um ano
+    function updateDates(year) {
+      const dateSelect = document.getElementById("dateSelect");
+      dateSelect.innerHTML = "";
+
+      const dates = [...new Set(allData
+        .map(r => r["Data"])
+        .filter(d => d && d.split("/")[2] === year))]; // corrigido!
+
+      dates.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        dateSelect.appendChild(opt);
+      });
+
+      if (dates.length > 0) {
+        showTableForDate(dates[0]);
+      }
+    }
+
+    // Carregar CSV
+    Papa.parse("https://peevoo.github.io/grelhasTV/data/grelha.csv", {
+      download: true,
+      header: true,
+      complete: function(results) {
+        allData = results.data;
+
+        // Dropdown de anos
+        const years = [...new Set(allData
+          .map(r => r["Data"]?.split("/")[2]) // corrigido!
+          .filter(Boolean))];
+
+        const yearSelect = document.getElementById("yearSelect");
+        years.forEach(y => {
+          const opt = document.createElement("option");
+          opt.value = y;
+          opt.textContent = y;
+          yearSelect.appendChild(opt);
+        });
+
+        if (years.length > 0) {
+          updateDates(years[0]);
+        }
+
+        yearSelect.addEventListener("change", e => {
+          updateDates(e.target.value);
+        });
+
+        document.getElementById("dateSelect").addEventListener("change", e => {
+          showTableForDate(e.target.value);
+        });
+      }
+    });
+  </script>
 </body>
 </html>
