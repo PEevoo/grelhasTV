@@ -1,181 +1,386 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Disney Channel Grelha</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #fafafa;
-      padding: 20px;
-      text-align: center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grelhas Disney Channel Portugal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    select {
-      padding: 4px 8px;
-      margin: 5px;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-    .schedule {
-      border-collapse: collapse;
-      width: 300px;
-      margin: 20px auto;
-      font-size: 14px;
-      background: white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
 
-    .schedule td {
-      border: 1px solid #ddd;
-      padding: 6px;
-    }
+        header {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
 
-    .hora {
-      width: 60px;
-      font-weight: bold;
-      color: #333;
-      white-space: nowrap;
-      text-align: right;
-    }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
 
-    .programa {
-      text-align: left;
-    }
+        .controls {
+            padding: 30px;
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
 
-    .bloco {
-      background: #f0f0f0;
-      font-weight: bold;
-      text-align: left;
-      padding-left: 8px;
-      border-top: 2px solid #aaa;
-    }
+        .control-group {
+            margin-bottom: 20px;
+        }
 
-    .indent {
-      padding-left: 20px !important;
-      color: #333;
-      border-left: 3px solid #ddd !important;
-    }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
 
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 12px;
-      color: #555;
-    }
-  </style>
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:hover {
+            border-color: #667eea;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #5a67d8;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .listings {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .listing-item {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .listing-item:last-child {
+            border-bottom: none;
+        }
+
+        .time {
+            font-weight: 700;
+            color: #5a67d8;
+            font-size: 16px;
+        }
+
+        .programme {
+            color: #2d3748;
+            font-size: 16px;
+        }
+
+        .block-container {
+            background: #edf2f7;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .block-header {
+            font-weight: 700;
+            color: #5a67d8;
+            margin-bottom: 12px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+
+        .block-header::before {
+            content: '📺';
+            margin-right: 8px;
+        }
+
+        .block-item {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 20px;
+            padding: 8px 0 8px 20px;
+        }
+
+        .premiere {
+            display: inline-block;
+            background: #f56565;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+    </style>
 </head>
 <body>
-  <h2>Grelha de Programação</h2>
+    <div class="container">
+        <header>
+            <h1>📺 Grelhas do Disney Channel Portugal</h1>
+            <p>Um arquivo interativo pelas grelhas do canal</p>
+        </header>
 
-  <div>
-    <label for="yearSelect">Ano:</label>
-    <select id="yearSelect"></select>
+        <div class="controls">
+            <div class="control-group">
+                <label for="yearSelect">Selecionar Ano:</label>
+                <select id="yearSelect">
+                    <option value="">A carregar...</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="dateSelect">Selecionar Data:</label>
+                <select id="dateSelect">
+                    <option value="">Primeiro, selecionar ano</option>
+                </select>
+            </div>
+        </div>
 
-    <label for="dateSelect">Data:</label>
-    <select id="dateSelect"></select>
-  </div>
+        <div class="listings" id="listings">
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <p>Selecionar um ano e uma data para ver a grelha do dia.</p>
+            </div>
+        </div>
+    </div>
 
-  <div id="tableContainer"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        let allData = [];
+        const yearSelect = document.getElementById('yearSelect');
+        const dateSelect = document.getElementById('dateSelect');
+        const listingsDiv = document.getElementById('listings');
 
-  <script>
-    let allData = [];
+        // Load CSV data
+        fetch('/data/grelha.csv')
+            .then(response => response.text())
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    delimiter: ';',
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        allData = results.data;
+                        populateYears();
+                    }
+                });
+            })
+            .catch(error => {
+                listingsDiv.innerHTML = '<div class="empty-state"><p>Erro ao carregar dados. Por favor, confirmar se grelha.csv está na pasta /data/.</p></div>';
+                console.error('Error:', error);
+            });
 
-    // Mostrar tabela de uma data específica
-    function showTableForDate(selectedDate) {
-      const rows = allData.filter(r => r["Data"] === selectedDate);
+        function populateYears() {
+            const years = new Set();
+            allData.forEach(row => {
+                if (row.Data) {
+                    const year = row.Data.split('/')[2];
+                    years.add(year);
+                }
+            });
 
-      if (rows.length === 0) {
-        document.getElementById("tableContainer").innerHTML = "<p>Nenhuma grelha encontrada.</p>";
-        return;
-      }
-
-      let html = `<table class="schedule">`;
-      let currentBloco = "";
-
-      rows.forEach(row => {
-        const bloco = row["Bloco"] ? row["Bloco"].trim() : "";
-
-        // Se mudou de bloco → imprime linha do bloco
-        if (bloco && bloco !== currentBloco) {
-          html += `<tr><td colspan="2" class="bloco">${bloco}</td></tr>`;
-          currentBloco = bloco;
+            const sortedYears = Array.from(years).sort();
+            yearSelect.innerHTML = '<option value="">Selecionar um ano...</option>';
+            sortedYears.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
         }
 
-        // Linha do programa
-        html += "<tr>";
-        html += `<td class="hora">${row["Hora"] || ""}</td>`;
-        html += `<td class="programa ${bloco ? 'indent' : ''}">${row["Programa"] || ""}</td>`;
-        html += "</tr>";
-      });
+        yearSelect.addEventListener('change', function() {
+            const selectedYear = this.value;
+            if (!selectedYear) {
+                dateSelect.innerHTML = '<option value="">Primeiro, selecionar um ano</option>';
+                return;
+            }
 
-      html += "</table>";
+            const dates = new Set();
+            allData.forEach(row => {
+                if (row.Data && row.Data.includes('/' + selectedYear)) {
+                    dates.add(row.Data);
+                }
+            });
 
-      const fonte = rows[0]?.Fonte || "Desconhecida";
-      const obs = rows[0]?.Obs || "";
+            const sortedDates = Array.from(dates).sort((a, b) => {
+                const [dayA, monthA, yearA] = a.split('/');
+                const [dayB, monthB, yearB] = b.split('/');
+                return new Date(yearA, monthA - 1, dayA) - new Date(yearB, monthB - 1, dayB);
+            });
 
-      html += `<div class="footer">
-        <em>Fonte: ${fonte}</em><br>
-        <small>Observações: ${obs}</small>
-      </div>`;
+            dateSelect.innerHTML = '<option value="">Selecionar uma data...</option>';
+            sortedDates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                const [day, month, year] = date.split('/');
+                const dateObj = new Date(year, month - 1, day);
+                const weekday = dateObj.toLocaleDateString('pt-PT', { weekday: 'long' });
+                option.textContent = `${weekday}, ${date}`;
+                dateSelect.appendChild(option);
+            });
 
-      document.getElementById("tableContainer").innerHTML = html;
-    }
-
-    // Atualizar dropdown de datas quando se escolhe um ano
-    function updateDates(year) {
-      const dateSelect = document.getElementById("dateSelect");
-      dateSelect.innerHTML = "";
-
-      const dates = [...new Set(allData
-        .map(r => r["Data"])
-        .filter(d => d && d.split("/")[2] === year))]; // corrigido!
-
-      dates.forEach(d => {
-        const opt = document.createElement("option");
-        opt.value = d;
-        opt.textContent = d;
-        dateSelect.appendChild(opt);
-      });
-
-      if (dates.length > 0) {
-        showTableForDate(dates[0]);
-      }
-    }
-
-    // Carregar CSV
-    Papa.parse("https://peevoo.github.io/grelhasTV/data/grelha.csv", {
-      download: true,
-      header: true,
-      complete: function(results) {
-        allData = results.data;
-
-        // Dropdown de anos
-        const years = [...new Set(allData
-          .map(r => r["Data"]?.split("/")[2]) // corrigido!
-          .filter(Boolean))];
-
-        const yearSelect = document.getElementById("yearSelect");
-        years.forEach(y => {
-          const opt = document.createElement("option");
-          opt.value = y;
-          opt.textContent = y;
-          yearSelect.appendChild(opt);
+            listingsDiv.innerHTML = '<div class="empty-state"><p>Selecionar uma data para ver a grelha</p></div>';
         });
 
-        if (years.length > 0) {
-          updateDates(years[0]);
+        dateSelect.addEventListener('change', function() {
+            const selectedDate = this.value;
+            if (!selectedDate) return;
+
+            const dayData = allData.filter(row => row.Data === selectedDate);
+            displayListings(dayData);
+        });
+
+        function displayListings(data) {
+            if (data.length === 0) {
+                listingsDiv.innerHTML = '<div class="empty-state"><p>Não há grelhas desta data</p></div>';
+                return;
+            }
+
+            let html = '';
+            let currentBlock = null;
+            let blockItems = [];
+
+            data.forEach((row, index) => {
+                const time = row.Hora || '';
+                const programme = row.Programa || '';
+                const block = row.Bloco || '';
+                const premiere = row.Estreia && row.Estreia.toLowerCase() === 'sim';
+
+                // Check if we're entering or leaving a block
+                if (block && block !== currentBlock) {
+                    // Close previous block if exists
+                    if (currentBlock) {
+                        html += createBlockHTML(currentBlock, blockItems);
+                        blockItems = [];
+                    }
+                    currentBlock = block;
+                }
+
+                if (currentBlock && block) {
+                    // Add to current block
+                    blockItems.push({ time, programme, premiere });
+                } else {
+                    // Close any open block
+                    if (currentBlock) {
+                        html += createBlockHTML(currentBlock, blockItems);
+                        blockItems = [];
+                        currentBlock = null;
+                    }
+                    // Regular item
+                    html += createListingItemHTML(time, programme, premiere);
+                }
+            });
+
+            // Close final block if exists
+            if (currentBlock) {
+                html += createBlockHTML(currentBlock, blockItems);
+            }
+
+            listingsDiv.innerHTML = html;
         }
 
-        yearSelect.addEventListener("change", e => {
-          updateDates(e.target.value);
-        });
+        function createListingItemHTML(time, programme, premiere) {
+            return `
+                <div class="listing-item">
+                    <div class="time">${time}</div>
+                    <div class="programme">
+                        ${programme}
+                        ${premiere ? '<span class="premiere">ESTREIA</span>' : ''}
+                    </div>
+                </div>
+            `;
+        }
 
-        document.getElementById("dateSelect").addEventListener("change", e => {
-          showTableForDate(e.target.value);
-        });
-      }
-    });
-  </script>
+        function createBlockHTML(blockName, items) {
+            let itemsHTML = items.map(item => `
+                <div class="block-item">
+                    <div class="time">${item.time}</div>
+                    <div class="programme">
+                        ${item.programme}
+                        ${item.premiere ? '<span class="premiere">ESTREIA</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                <div class="block-container">
+                    <div class="block-header">${blockName}</div>
+                    ${itemsHTML}
+                </div>
+            `;
+        }
+    </script>
 </body>
 </html>
