@@ -223,7 +223,7 @@
         const listingsDiv = document.getElementById('listings');
 
         // Load CSV data
-        fetch('/data/grelha.csv')
+        fetch('./data/grelha.csv')
             .then(response => response.text())
             .then(csvText => {
                 Papa.parse(csvText, {
